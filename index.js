@@ -1,7 +1,6 @@
 const Discord = require('discord.js');
 const Client = new Discord.Client();
 const axios = require('axios');
-const config = require('./config.json');
 const utf8 = require('utf8');
 const fuzzy = require('fuzzyset.js');
 const babes = fuzzy(
@@ -82,7 +81,7 @@ const ids = {
 
 const getPlayer = (dada) => {
     try {
-        return axios.get(`https://api.brawlhalla.com/player/${dada}/ranked?api_key=${process.env.api_key || config.api_key}`);
+        return axios.get(`https://api.brawlhalla.com/player/${dada}/ranked?api_key=${process.env.api_key}`);
     }
     catch (e) { console.log(e); }
 }
@@ -296,4 +295,4 @@ Client.on('message', (msg) => {
         }
     }
 });
-Client.login(process.env.bot_token || config.bot_token);
+Client.login(process.env.bot_token);
