@@ -1,6 +1,7 @@
 const Discord = require('discord.js');
 const Client = new Discord.Client();
 const axios = require('axios');
+const config = require('./config.json');
 const utf8 = require('utf8');
 const fuzzy = require('fuzzyset.js');
 const babes = fuzzy(
@@ -39,48 +40,49 @@ const babes = fuzzy(
         "Papa Legba",
         "Mushra212",
         "Kevin",
+        "Winged_Shell"
     ]);
 const ids = {
-    "Joldz": "4267562",
-    "Kenxall": "5808919",
-    "Aura Onyxx": "5808998",
-    "Kaducci": "5832325",
-    "smurfyypurple": "5809085",
-    "Graveldog22": "3639794",
-    "Abused": "5750975",
-    "Eorria": "1689573",
-    "tp": "510910",
-    "m a g i c": "432179",
-    "iCarrot": "4001892",
-    "xLegitxKill3rx": "7361190",
-    "Maverick": "298967",
-    "Pain": "5059322",
-    "Splitbreed": "377318",
-    "IAmMeSoWhoAreU": "186181",
-    "spoonz": "790047",
-    "Yeakoo": "771642",
-    "AfroNinjaX": "5628521",
-    "xGreeeeny": "2206192",
-    "MasonValdo": "3546184",
-    "SeV": "1633275",
-    "Abyssaal": "6949810",
-    "H4WKEN": "747115",
-    "TSayneRex": "4056870",
-    "AbusedSociety": "7960184",
-    "DiveEm": "1736731",
-    "Y0LK": "3358758",
-    "Dad": "5116433",
-    "Kendal": "2558762",
-    "Aidenrod991": "636439",
-    "Papa Legba": "7507303",
-    "Mushra212": "1830220",
-    "Kevin": "130057"
+    "Joldz": 4267562,
+    "Kenxall": 5808919,
+    "AuraOnyxx": 5808998,
+    "Kaducci": 5832325,
+    "smurfyypurple": 5809085,
+    "Graveldog22": 3639794,
+    "Abused": 5750975,
+    "Eorria": 1689573,
+    "tp": 510910,
+    "magic": 432179,
+    "iCarrot": 4001892,
+    "xLegitxKill3rx": 7361190,
+    "Maverick": 298967,
+    "Pain": 5059322,
+    "Splitbreed": 377318,
+    "IAmMeSoWhoAreU": 186181,
+    "spoonz": 790047,
+    "Yeakoo": 771642,
+    "AfroNinjaX": 5628521,
+    "xGreeeeny": 2206192,
+    "MasonValdo": 3546184,
+    "SeV": 1633275,
+    "Abyssaal": 6949810,
+    "H4WKEN": 747115,
+    "TSayneRex": 4056870,
+    "AbusedSociety": 7960184,
+    "DiveEm": 1736731,
+    "Y0LK": 3358758,
+    "Dad": 5116433,
+    "Kendal": 2558762,
+    "Aidenrod991": 636439,
+    "PapaLegba": 7507303,
+    "Mushra212": 1830220,
+    "Kevin": 130057,
+    "Winged_Shell": 1282198
 }
 
 const getPlayer = (dada) => {
     try {
-        console.log(dada);
-        return axios.get(`https://api.brawlhalla.com/player/${dada}/ranked?api_key=${process.env.api_key}`);
+        return axios.get(`https://api.brawlhalla.com/player/${dada}/ranked?api_key=${process.env.api_key || config.api_key}`);
     }
     catch (e) { console.log(e); }
 }
@@ -88,7 +90,7 @@ const getPlayer = (dada) => {
 Client.on('ready', () => console.log('I\'m ready.'));
 
 Client.on('message', (msg) => {
-    let args = msg.content.split('"');
+    let args = msg.content.split(' ');
     if (msg.content.startsWith('?r')) {
         const user = (babes.get(args[1])) ? babes.get(args[1])[0][1] : false;
         let id = ids[user];
@@ -114,7 +116,7 @@ Client.on('message', (msg) => {
                 // By Winrate
                 let best_team_two = [2, 0];
                 result['2v2'].forEach((team, index) => {
-                    if (team.games <= 10) return;
+                    if (team.games <= 12) return;
                     let wr = ((parseInt(team['wins']) * 100) / parseInt(team['games']));
                     if (wr > best_team_two[1]) {
                         best_team_two[0] = index;
@@ -177,16 +179,66 @@ Client.on('message', (msg) => {
     }
     else if (msg.content.startsWith('?t')) {
         const user = (babes.get(args[1])) ? babes.get(args[1])[0][1] : false;
-        const user_two = (babes.get(args[3])) ? babes.get(args[3])[0][1] : false;
+        const user_two = (babes.get(args[2])) ? babes.get(args[2])[0][1] : false;
         if (user !== false) {
             if (user_two !== false) {
                 let id = ids[user];
                 let id_two = ids[user_two];
                 getPlayer(id).then(data => {
-                    let result = data.data['2v2'].filter(team => {
-                        return team['brawlhalla_id_one'] === parseInt(id_two);
-                    })[0];
-                    if (result) {
+                    let res = data.data['2v2'];
+                    if (typeof res.find(x => x.brawlhalla_id_two === id_two) === "undefined") {
+                        if (typeof res.find(x => x.brawlhalla_id_one === id_two) === "undefined") {
+                            return msg.channel.send('These two bitches never played together.');
+                        }
+                        else {
+                            let result = res.find(x => x.brawlhalla_id_one === id_two);
+                            let team = result['teamname'].split('+');
+                            let loss = parseInt(result['games']) - parseInt(result['wins']);
+                            result['teamname'] = utf8.decode(result['teamname'].split('+').join(' & '));
+                            result['winrate'] = ((parseInt(result['wins']) * 100) / parseInt(result['games']));
+
+                            const embed = {
+                                "title": "Team data for my boys " + utf8.decode(team[0]) + " and " + utf8.decode(team[1]),
+                                "color": 7917496,
+                                "footer": {
+                                    "icon_url": "https://cdn.discordapp.com/avatars/158091494748585984/dec2880814c1dd8a1f572e6c39323130.png?size=2048",
+                                    "text": "Pssh, hey babe, beat em hoes. You got this."
+                                },
+                                "thumbnail": {
+                                    "url": "https://i.imgur.com/YNBA0tj.jpg"
+                                },
+                                "fields": [{
+                                        "name": "Names",
+                                        "value": utf8.decode(team[0]) + " & " + utf8.decode(team[1]),
+                                        "inline": true
+                                    },
+                                    {
+                                        "name": "Region",
+                                        "value": "Sword. Nuff said.",
+                                        "inline": true
+                                    },
+                                    {
+                                        "name": "Elooo",
+                                        "value": "**" + result['tier'] + "** (" + result['rating'] + " / " + result['peak_rating'] + ")",
+                                        "inline": true
+                                    },
+                                    {
+                                        "name": "Games",
+                                        "value": "**" + result['games'] + "** (" + result['wins'] + " - " + loss + ")",
+                                        "inline": true
+                                    },
+                                    {
+                                        "name": "Ranking",
+                                        "value": `**${result['tier']}** (${result['rating']} / ${result['peak_rating']})\n**Winrate**: ${result['winrate'].toFixed(2)}% (${result['wins']} - ${loss})`,
+                                        "inline": true
+                                    }
+                                ]
+                            };
+                            msg.channel.send({ embed });
+                        }
+                    }
+                    else {
+                        let result = res.find(x => x.brawlhalla_id_two === id_two);
                         let team = result['teamname'].split('+');
                         let loss = parseInt(result['games']) - parseInt(result['wins']);
                         result['teamname'] = utf8.decode(result['teamname'].split('+').join(' & '));
@@ -231,9 +283,6 @@ Client.on('message', (msg) => {
                         };
                         msg.channel.send({ embed });
                     }
-                    else {
-                        msg.channel.send('These two bitches never played together.');
-                    }
 
                 });
             }
@@ -247,4 +296,4 @@ Client.on('message', (msg) => {
         }
     }
 });
-Client.login(process.env.bot_token);
+Client.login(process.env.bot_token || config.bot_token);
