@@ -39,7 +39,8 @@ const babes = fuzzy(
         "Papa Legba",
         "Mushra212",
         "Kevin",
-        "Winged_Shell"
+        "Winged_Shell",
+        "sickrips"
     ]);
 const ids = {
     "Joldz": 4267562,
@@ -76,7 +77,8 @@ const ids = {
     "PapaLegba": 7507303,
     "Mushra212": 1830220,
     "Kevin": 130057,
-    "Winged_Shell": 1282198
+    "Winged_Shell": 1282198,
+    "sickrips": 2071047
 }
 
 const getPlayer = (dada) => {
